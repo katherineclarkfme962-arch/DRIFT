@@ -557,13 +557,11 @@ async def serve_drift_file(filename: str):
 
 
 async def handle_ffglory(request: web.Request) -> web.Response:
-    """Landing page →  /  →  DRIFT/ffglory.html"""
-    return await serve_drift_file("ffglory.html")
+    raise web.HTTPFound('/client')
 
 
 async def handle_login_page(request: web.Request) -> web.Response:
-    """Login page →  /login  →  DRIFT/login.html"""
-    return await serve_drift_file("login.html")
+    raise web.HTTPFound('/client')
 
 
 async def handle_client_page(request: web.Request) -> web.Response:
@@ -938,72 +936,20 @@ async def handle_api_logs(request: web.Request) -> web.Response:
 
 
 # ═══════════════════════════════════════════════════════════════════
-# ═══════════════════════════════════════════════════════════════════
-#  AUTH & USER APIs (معالجة التسجيل وتسجيل الدخول)
-# ═══════════════════════════════════════════════════════════════════
-async def handle_api_login(request: web.Request) -> web.Response:
-    try:
-        data = await request.json()
-        username = data.get("username")
-        password = data.get("password")
-        # يمكنك هنا التحقق من بيانات المستخدم
-        return web.json_response({"status": "ok", "message": "Logged in successfully"})
-    except Exception as e:
-        return web.json_response({"error": str(e)}, status=400)
-
-async def handle_api_signup(request: web.Request) -> web.Response:
-    try:
-        data = await request.json()
-        username = data.get("username")
-        password = data.get("password")
-        # يمكنك هنا حفظ المستخدم الجديد
-        return web.json_response({"success": True, "message": "Account created successfully"})
-    except Exception as e:
-        return web.json_response({"error": str(e)}, status=400)
-
-async def handle_api_me(request: web.Request) -> web.Response:
-    return web.json_response({
-        "username": "Admin",
-        "role": "admin",
-        "basic_credits": 10,
-        "premium_credits": 5,
-        "max_groups": 10
-    })
-
-async def handle_api_logout(request: web.Request) -> web.Response:
-    return web.json_response({"status": "ok"})
-    
-#  START WEB DASHBOARD — DRIFT folder routing added
-# ═══════════════════════════════════════════════════════════════════
-
-# ═══════════════════════════════════════════════════════════════════
-#  AUTH & USER APIs (Default admin / admin123)
+#  AUTH & USER APIs (Bypassed / Auto Admin)
 # ═══════════════════════════════════════════════════════════════════
 async def handle_api_login(request: web.Request) -> web.Response:
-    try:
-        data = await request.json()
-        username = str(data.get("username", "")).strip()
-        password = str(data.get("password", "")).strip()
-        
-        if username == "admin" and password == "admin123":
-            return web.json_response({"status": "ok", "message": "Logged in successfully"})
-            
-        return web.json_response({"error": "Invalid username or password (use admin / admin123)"}, status=401)
-    except Exception as e:
-        return web.json_response({"error": str(e)}, status=400)
+    return web.json_response({"status": "ok", "message": "Bypassed"})
 
 async def handle_api_signup(request: web.Request) -> web.Response:
-    try:
-        return web.json_response({"success": True, "message": "Account created successfully"})
-    except Exception as e:
-        return web.json_response({"error": str(e)}, status=400)
+    return web.json_response({"success": True, "message": "Bypassed"})
 
 async def handle_api_me(request: web.Request) -> web.Response:
     return web.json_response({
         "username": "admin",
         "role": "admin",
-        "basic_credits": 100,
-        "premium_credits": 50,
+        "basic_credits": 1000,
+        "premium_credits": 500,
         "max_groups": 10
     })
 
@@ -1011,25 +957,23 @@ async def handle_api_logout(request: web.Request) -> web.Response:
     return web.json_response({"status": "ok"})
 
 
+# ═══════════════════════════════════════════════════════════════════
+#  START WEB DASHBOARD
+# ═══════════════════════════════════════════════════════════════════
 async def start_web_dashboard(host: str = "0.0.0.0", port: int = 5000):
     app = web.Application()
 
     # ═══════════════════════════════════════════════════════
-    # ═══════════════════════════════════════════════════════
-    #  DRIFT Folder — HTML Page Routes
+    #  DRIFT Folder — HTML Page Routes (Redirected to /client)
     # ═══════════════════════════════════════════════════════
     app.router.add_get("/",       handle_ffglory)
-    app.router.add_post("/api/auth/login",  handle_api_login)
-    app.router.add_post("/api/auth/signup", handle_api_signup)
-    app.router.add_get ("/api/me",          handle_api_me)
-    app.router.add_post("/api/logout",      handle_api_logout)
-      # Landing page
-    app.router.add_get("/login",  handle_login_page)   # Login page
-    app.router.add_get("/client", handle_client_page)  # User dashboard
-    app.router.add_get("/bot",    handle_bot_page)     # Bot admin panel
+    app.router.add_get("/login",  handle_login_page)
+    app.router.add_get("/client", handle_client_page)
+    app.router.add_page = app.router.add_get # fallback if needed
+    app.router.add_get("/bot",    handle_bot_page)
 
     # ═══════════════════════════════════════════════════════
-    #  Auth & User APIs (تمت الإضافة هنا)
+    #  Auth & User APIs
     # ═══════════════════════════════════════════════════════
     app.router.add_post("/api/auth/login",  handle_api_login)
     app.router.add_post("/api/auth/signup", handle_api_signup)
@@ -1037,7 +981,7 @@ async def start_web_dashboard(host: str = "0.0.0.0", port: int = 5000):
     app.router.add_post("/api/logout",      handle_api_logout)
 
     # ═══════════════════════════════════════════════════════
-    #  Bot APIs (unchanged)
+    #  Bot APIs
     # ═══════════════════════════════════════════════════════
     app.router.add_post("/api/clanjoin",          handle_api_clan_join)
     app.router.add_get ("/api/guildinfo",         handle_api_guild_info)
