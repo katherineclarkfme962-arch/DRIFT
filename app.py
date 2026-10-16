@@ -26,10 +26,10 @@ import thunderFF_pb2
 
 from dashboard_server import bot_state, start_web_dashboard
 
-
 # ═══════════════════════════ CONFIG ═══════════════════════════
 WEB_HOST = "0.0.0.0"
-WEB_PORT = 20333
+WEB_PORT = int(os.environ.get("PORT", 20333))
+
 
 # ⭐ DRIFT folder — HTML files yahan rakho
 DRIFT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "DRIFT")
