@@ -938,11 +938,47 @@ async def handle_api_logs(request: web.Request) -> web.Response:
 
 
 # ═══════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════
+#  AUTH & USER APIs (معالجة التسجيل وتسجيل الدخول)
+# ═══════════════════════════════════════════════════════════════════
+async def handle_api_login(request: web.Request) -> web.Response:
+    try:
+        data = await request.json()
+        username = data.get("username")
+        password = data.get("password")
+        # يمكنك هنا التحقق من بيانات المستخدم
+        return web.json_response({"status": "ok", "message": "Logged in successfully"})
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=400)
+
+async def handle_api_signup(request: web.Request) -> web.Response:
+    try:
+        data = await request.json()
+        username = data.get("username")
+        password = data.get("password")
+        # يمكنك هنا حفظ المستخدم الجديد
+        return web.json_response({"success": True, "message": "Account created successfully"})
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=400)
+
+async def handle_api_me(request: web.Request) -> web.Response:
+    return web.json_response({
+        "username": "Admin",
+        "role": "admin",
+        "basic_credits": 10,
+        "premium_credits": 5,
+        "max_groups": 10
+    })
+
+async def handle_api_logout(request: web.Request) -> web.Response:
+    return web.json_response({"status": "ok"})
+    
 #  START WEB DASHBOARD — DRIFT folder routing added
 # ═══════════════════════════════════════════════════════════════════
 async def start_web_dashboard(host: str = "0.0.0.0", port: int = 5000):
     app = web.Application()
 
+    # ═══════════════════════════════════════════════════════
     # ═══════════════════════════════════════════════════════
     #  DRIFT Folder — HTML Page Routes
     # ═══════════════════════════════════════════════════════
@@ -950,6 +986,14 @@ async def start_web_dashboard(host: str = "0.0.0.0", port: int = 5000):
     app.router.add_get("/login",  handle_login_page)   # Login page
     app.router.add_get("/client", handle_client_page)  # User dashboard
     app.router.add_get("/bot",    handle_bot_page)     # Bot admin panel
+
+    # ═══════════════════════════════════════════════════════
+    #  Auth & User APIs (تمت الإضافة هنا)
+    # ═══════════════════════════════════════════════════════
+    app.router.add_post("/api/auth/login",  handle_api_login)
+    app.router.add_post("/api/auth/signup", handle_api_signup)
+    app.router.add_get ("/api/me",          handle_api_me)
+    app.router.add_post("/api/logout",      handle_api_logout)
 
     # ═══════════════════════════════════════════════════════
     #  Bot APIs (unchanged)
