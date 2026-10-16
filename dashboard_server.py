@@ -975,6 +975,42 @@ async def handle_api_logout(request: web.Request) -> web.Response:
     
 #  START WEB DASHBOARD — DRIFT folder routing added
 # ═══════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════
+#  AUTH & USER APIs (Default admin / admin123)
+# ═══════════════════════════════════════════════════════════════════
+async def handle_api_login(request: web.Request) -> web.Response:
+    try:
+        data = await request.json()
+        username = str(data.get("username", "")).strip()
+        password = str(data.get("password", "")).strip()
+        
+        if username == "admin" and password == "admin123":
+            return web.json_response({"status": "ok", "message": "Logged in successfully"})
+            
+        return web.json_response({"error": "Invalid username or password (use admin / admin123)"}, status=401)
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=400)
+
+async def handle_api_signup(request: web.Request) -> web.Response:
+    try:
+        return web.json_response({"success": True, "message": "Account created successfully"})
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=400)
+
+async def handle_api_me(request: web.Request) -> web.Response:
+    return web.json_response({
+        "username": "admin",
+        "role": "admin",
+        "basic_credits": 100,
+        "premium_credits": 50,
+        "max_groups": 10
+    })
+
+async def handle_api_logout(request: web.Request) -> web.Response:
+    return web.json_response({"status": "ok"})
+
+
 async def start_web_dashboard(host: str = "0.0.0.0", port: int = 5000):
     app = web.Application()
 
@@ -982,7 +1018,12 @@ async def start_web_dashboard(host: str = "0.0.0.0", port: int = 5000):
     # ═══════════════════════════════════════════════════════
     #  DRIFT Folder — HTML Page Routes
     # ═══════════════════════════════════════════════════════
-    app.router.add_get("/",       handle_ffglory)      # Landing page
+    app.router.add_get("/",       handle_ffglory)
+    app.router.add_post("/api/auth/login",  handle_api_login)
+    app.router.add_post("/api/auth/signup", handle_api_signup)
+    app.router.add_get ("/api/me",          handle_api_me)
+    app.router.add_post("/api/logout",      handle_api_logout)
+      # Landing page
     app.router.add_get("/login",  handle_login_page)   # Login page
     app.router.add_get("/client", handle_client_page)  # User dashboard
     app.router.add_get("/bot",    handle_bot_page)     # Bot admin panel
